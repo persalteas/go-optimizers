@@ -3,10 +3,12 @@ package main
 import (
 	"fmt"
 	"os"
+
 	// "strings"
 	"time"
 
 	"encoding/csv"
+
 	"github.com/Arafatk/glot"
 )
 
@@ -161,6 +163,6 @@ func plot2dTrajectories(plot *glot.Plot, names *[]string) {
 		}
 	}
 
-	fmt.Println(cmd)
+	// fmt.Println(cmd)
 	tryGnuplotCmd(plot, cmd)
 }
