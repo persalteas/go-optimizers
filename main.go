@@ -10,6 +10,7 @@ import (
 	"encoding/csv"
 
 	"github.com/Arafatk/glot"
+	"gorgonia.org/tensor"
 )
 
 func run(o Optimizer, optiIndex int) []Point {
@@ -17,7 +18,7 @@ func run(o Optimizer, optiIndex int) []Point {
 	var trajectory = []Point{}
 	trajectory = append(trajectory, *o.getCurrent()) // Set the first point as the begining of the trajectory
 	for !o.checkConverged(uint(len(trajectory) - 1)) {
-		next := o.move(o.getCurrent(), 0.01)
+		next := o.move(o.getCurrent())
 		trajectory = append(trajectory, next)
 	}
 	fmt.Printf("Converged in %d iterations.\n", len(trajectory)-1)
@@ -34,16 +35,18 @@ func main() {
 	fmt.Println("Welcome to the IBISC superoptimizer. Time to superoptimize your life.")
 	fmt.Printf("Starting with an optimization problem: %d cost functions to minimize, depending on %d variables.\n", nDims, nVars)
 
-	var startingPoint = []float64{5.0, -5.0} // Coordinates in the space of variables
+	var startingPoint = []float64{-3.0, 3.0} // Coordinates in the space of variables
 	var first = p.evaluate(startingPoint)
 
 	// Create some Optimizers. Pick your favorite algorithm, see optimizers.go for the list.
 	var stopTolerance float64 = 0.000001
 	var myOptis = []Optimizer{
-		&MonoGradientDescent{&first, 0, stopTolerance, 10000},
-		&MonoGradientDescent{&first, 1, stopTolerance, 10000},
+		// &MonoGradientDescent{&first, 0, stopTolerance, 10000, 0.01},
+		// &MonoGradientDescent{&first, 1, stopTolerance, 10000, 0.01},
+		&SteepestDescent{&first, stopTolerance, 10000, false, 1.0},
 	}
-	var names = []string{"Gradient Descent on Function 1", "Gradient Descent on Function 2"}
+	// var names = []string{"Gradient Descent on Function 1", "Gradient Descent on Function 2", "SteepestDescent"}
+	var names = []string{"SteepestDescent"}
 
 	// Prepare a plot
 	persist := true // Keep the Gnuplot window open
@@ -61,7 +64,7 @@ func main() {
 	plot3dTrajectories(plot3d, &names)
 	plot2dTrajectories(plot2d, &names)
 
-	time.Sleep(time.Second * 20)
+	time.Sleep(time.Second * 2)
 }
 
 func tryGnuplotCmd(plot *glot.Plot, cmd string) {
@@ -98,7 +101,6 @@ func trajToCSV(traj *[]Point, optiIndex int) {
 	}
 	writer.Flush()
 	file.Close()
-
 }
 
 func plot3dTrajectories(plot *glot.Plot, names *[]string) {
@@ -165,4 +167,13 @@ func plot2dTrajectories(plot *glot.Plot, names *[]string) {
 
 	// fmt.Println(cmd)
 	tryGnuplotCmd(plot, cmd)
+}
+
+func toFloat(t *tensor.Dense, err error) float64 {
+
+	if err != nil {
+		panic(err)
+	}
+	temp := t.Get(0)
+	return temp.(float64)
 }

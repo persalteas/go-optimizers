@@ -6,9 +6,6 @@ import (
 	"gorgonia.org/tensor"
 )
 
-// // tensor.Dense Alias for tensor.Dense
-// type tensor.Dense tensor.Dense
-
 // Problem The struct which stores the optimisation problem definition,
 // by defining its function and derivatives
 type Problem struct {
