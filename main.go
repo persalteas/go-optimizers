@@ -62,20 +62,20 @@ func solveMonoObjectiveProblem() {
 	// #############################################
 
 	// Linesearchers
-	ls := optimize.Backtracking{} // Search for Armijo conditions (not Wolfe conditions). Few gradient evaluations.
-	ls := optimize.Bisection{}    // Search for weak Wolfe conditions
-	ls := optimize.MoreThuente{}  // Search for strong Wolfe conditions
+	// ls := optimize.Backtracking{} // Search for Armijo condition. Few gradient evaluations.
+	// ls := optimize.Bisection{}    // Search for weak Wolfe conditions
+	ls := optimize.MoreThuente{} // Search for strong Wolfe conditions. More minor iterations, solution closer to the local minima at each major.
 
 	// Optimizers
-	m := optimize.NelderMead{}      // simplex algorithm for gradient-free NLP
-	m := optimize.Newton{}          // modified Newton's method. Applies regularization when the Hessian is not positive definite.
-	m := optimize.BFGS{}            // quasi-Newton method, o(n²) in memory
-	m := optimize.LBFGS{}           // idem, lower memory complexity for large problems
-	m := optimize.CG{}              // nonlinear conjugate gradient
-	m := optimize.CmaEsChol{}       // covariance matrix adaptation evolution strategy (CMA-ES) based on the Cholesky decomposition
-	m := optimize.GradientDescent{} // steepest descent
-	m := optimize.GuessAndCheck{}   // Evaluates the function at random points (for comparison purposes)
-	m := optimize.ListSearch{}      // Find the optimum in a user-provded list of locations
+	// m := optimize.NelderMead{}                       // simplex algorithm for gradient-free NLP
+	// m := optimize.Newton{Linesearcher: &ls}          // modified Newton's method. Applies regularization when the Hessian is not positive definite.
+	// m := optimize.BFGS{Linesearcher: &ls}            // quasi-Newton method, o(n²) in memory
+	m := optimize.LBFGS{Linesearcher: &ls} // idem, lower memory complexity for large problems
+	// m := optimize.CG{Linesearcher: &ls}              // nonlinear conjugate gradient
+	// m := optimize.CmaEsChol{}                        // covariance matrix adaptation evolution strategy (CMA-ES) based on the Cholesky decomposition
+	// m := optimize.GradientDescent{Linesearcher: &ls} // steepest descent
+	// m := optimize.GuessAndCheck{}                    // Evaluates the function at random points (for comparison purposes)
+	// m := optimize.ListSearch{}                       // Find the optimum in a user-provded list of locations
 
 	c := optimize.FunctionConverge{
 		Absolute:   1e-6,
