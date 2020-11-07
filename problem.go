@@ -6,6 +6,10 @@ import (
 	"gorgonia.org/tensor"
 )
 
+// ########################################################
+// 		DEFINE YOUR PROBLEM'S FUNCTIONS HERE
+// ########################################################
+
 // Problem The struct which stores the optimisation problem definition,
 // by defining its function and derivatives
 type Problem struct {
@@ -69,4 +73,66 @@ func hessianf(v []float64) *tensor.Dense {
 // Getter for the number of dimensions of the optimisation problem
 func (p *Problem) getDims() (int, int) {
 	return p.nVars, p.nDims
+}
+
+// ##############################################################
+// 			OR USE ONE OF THESE KNOWN FUNCTIONS
+// ##############################################################
+
+// Code copy pasted and adapted without permission from gonum/optimize/functions.
+
+var bealeEq = []string{"(1.5-x+x*y)**2+(2.25-x+x*y*y)**2+(2.625-x+x*y*y*y)**2"}
+
+// BealeProblem implements the Beale's function.
+var BealeProblem = Problem{2, 1, beale, jacobianBeale, hessianBeale, &bealeEq}
+
+//
+// Standard starting points:
+//  Easy: [1, 1]
+//  Hard: [1, 4]
+//
+// References:
+//  - Beale, E.: On an Iterative Method for Finding a Local Minimum of a
+//    Function of More than One Variable. Technical Report 25, Statistical
+//    Techniques Research Group, Princeton University (1958)
+//  - More, J., Garbow, B.S., Hillstrom, K.E.: Testing unconstrained
+//    optimization software. ACM Trans Math Softw 7 (1981), 17-41
+
+func beale(x []float64) *tensor.Dense {
+	f1 := 1.5 - x[0]*(1-x[1])
+	f2 := 2.25 - x[0]*(1-x[1]*x[1])
+	f3 := 2.625 - x[0]*(1-x[1]*x[1]*x[1])
+	var result = tensor.New(tensor.WithShape(1, 1), tensor.WithBacking([]float64{f1*f1 + f2*f2 + f3*f3}))
+
+	return result
+}
+
+func jacobianBeale(x []float64) *tensor.Dense {
+	t1 := 1 - x[1]
+	t2 := 1 - x[1]*x[1]
+	t3 := 1 - x[1]*x[1]*x[1]
+
+	f1 := 1.5 - x[0]*t1
+	f2 := 2.25 - x[0]*t2
+	f3 := 2.625 - x[0]*t3
+
+	grad1 := -2 * (f1*t1 + f2*t2 + f3*t3)
+	grad2 := 2 * x[0] * (f1 + 2*f2*x[1] + 3*f3*x[1]*x[1])
+	var result = tensor.New(tensor.WithShape(1, 2), tensor.WithBacking([]float64{grad1, grad2}))
+	return result
+}
+
+func hessianBeale(x []float64) *tensor.Dense {
+	t1 := 1 - x[1]
+	t2 := 1 - x[1]*x[1]
+	t3 := 1 - x[1]*x[1]*x[1]
+	f1 := 1.5 - x[1]*t1
+	f2 := 2.25 - x[1]*t2
+	f3 := 2.625 - x[1]*t3
+
+	h00 := 2 * (t1*t1 + t2*t2 + t3*t3)
+	h01 := 2 * (f1 + x[1]*(2*f2+3*x[1]*f3) - x[0]*(t1+x[1]*(2*t2+3*x[1]*t3)))
+	h11 := 2 * x[0] * (x[0] + 2*f2 + x[1]*(6*f3+x[0]*x[1]*(4+9*x[1]*x[1])))
+	var result = tensor.New(tensor.WithShape(1, 2, 2), tensor.WithBacking([]float64{h00, h01, h01, h11}))
+	return result
 }
